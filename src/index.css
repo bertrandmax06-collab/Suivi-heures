@@ -5,22 +5,45 @@
 @layer base {
   * {
     -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
   }
 
   html {
-    scroll-behavior: smooth;
+    height: 100%;
+    /* Prevent iOS bounce */
+    overscroll-behavior: none;
   }
 
   body {
+    height: 100%;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: #f9fafb;
+    overscroll-behavior: none;
+    /* Prevent text selection on tap */
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Allow text selection in inputs and textareas */
+  input, textarea, [contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  #root {
+    height: 100%;
   }
 
   input[type="time"]::-webkit-calendar-picker-indicator {
     opacity: 0.5;
     cursor: pointer;
+  }
+
+  /* Smooth momentum scrolling on iOS */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -31,5 +54,16 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Safe area padding for iPhone notch / Dynamic Island */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pb-safe {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
   }
 }
