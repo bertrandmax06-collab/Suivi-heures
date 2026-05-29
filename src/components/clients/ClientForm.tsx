@@ -55,7 +55,7 @@ export function ClientForm({ client, onSave, onCancel }: ClientFormProps) {
       onSave();
     } catch (err) {
       console.error(err);
-      setSaveError('Erreur de sauvegarde. Vérifiez votre connexion.');
+      setSaveError(`Erreur: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
     } finally {
       setSaving(false);
     }
