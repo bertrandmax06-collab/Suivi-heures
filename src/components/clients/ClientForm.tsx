@@ -25,6 +25,8 @@ export function ClientForm({ client, onSave, onCancel }: ClientFormProps) {
     notes: client?.notes ?? '',
   });
   const [errors, setErrors] = useState<{ name?: string }>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   function validate() {
     const e: { name?: string } = {};
@@ -33,21 +35,30 @@ export function ClientForm({ client, onSave, onCancel }: ClientFormProps) {
     return Object.keys(e).length === 0;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
+    setSaving(true);
+    setSaveError(null);
     const data = {
       name: form.name.trim(),
       color: form.color,
       hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
       notes: form.notes || undefined,
     };
-    if (client) {
-      updateClient({ ...client, ...data });
-    } else {
-      addClient(data);
+    try {
+      if (client) {
+        await updateClient({ ...client, ...data });
+      } else {
+        await addClient(data);
+      }
+      onSave();
+    } catch (err) {
+      console.error(err);
+      setSaveError('Erreur de sauvegarde. Vérifiez votre connexion.');
+    } finally {
+      setSaving(false);
     }
-    onSave();
   }
 
   return (
@@ -97,12 +108,16 @@ export function ClientForm({ client, onSave, onCancel }: ClientFormProps) {
         placeholder="Adresse, contact, remarques..."
       />
 
+      {saveError && (
+        <p className="text-sm text-red-500 text-center">{saveError}</p>
+      )}
+
       <div className="flex gap-3 pt-2">
-        <Button type="button" variant="secondary" fullWidth onClick={onCancel}>
+        <Button type="button" variant="secondary" fullWidth onClick={onCancel} disabled={saving}>
           Annuler
         </Button>
-        <Button type="submit" fullWidth>
-          {client ? 'Modifier' : 'Créer'}
+        <Button type="submit" fullWidth disabled={saving}>
+          {saving ? 'Sauvegarde…' : client ? 'Modifier' : 'Créer'}
         </Button>
       </div>
     </form>

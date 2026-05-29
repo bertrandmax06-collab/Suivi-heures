@@ -27,6 +27,8 @@ export function WorkEntryForm({ date, entry, onSave, onCancel }: WorkEntryFormPr
   const [clientSearch, setClientSearch] = useState('');
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [errors, setErrors] = useState<Partial<FormState>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [form, setForm] = useState<FormState>({
     clientId: entry?.clientId ?? '',
@@ -67,9 +69,11 @@ export function WorkEntryForm({ date, entry, onSave, onCancel }: WorkEntryFormPr
     return Object.keys(newErrors).length === 0;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
+    setSaving(true);
+    setSaveError(null);
 
     const data = {
       date,
@@ -81,12 +85,19 @@ export function WorkEntryForm({ date, entry, onSave, onCancel }: WorkEntryFormPr
       notes: form.notes || undefined,
     };
 
-    if (entry) {
-      updateEntry({ ...entry, ...data });
-    } else {
-      addEntry(data);
+    try {
+      if (entry) {
+        await updateEntry({ ...entry, ...data });
+      } else {
+        await addEntry(data);
+      }
+      onSave();
+    } catch (err) {
+      console.error(err);
+      setSaveError('Erreur de sauvegarde. Vérifiez votre connexion.');
+    } finally {
+      setSaving(false);
     }
-    onSave();
   }
 
   function selectClient(client: Client) {
@@ -213,12 +224,16 @@ export function WorkEntryForm({ date, entry, onSave, onCancel }: WorkEntryFormPr
         placeholder="Travaux effectués, remarques..."
       />
 
+      {saveError && (
+        <p className="text-sm text-red-500 text-center px-2">{saveError}</p>
+      )}
+
       <div className="flex gap-3 pt-2">
-        <Button type="button" variant="secondary" fullWidth onClick={onCancel}>
+        <Button type="button" variant="secondary" fullWidth onClick={onCancel} disabled={saving}>
           Annuler
         </Button>
-        <Button type="submit" fullWidth>
-          {entry ? 'Modifier' : 'Enregistrer'}
+        <Button type="submit" fullWidth disabled={saving}>
+          {saving ? 'Sauvegarde…' : entry ? 'Modifier' : 'Enregistrer'}
         </Button>
       </div>
     </form>
