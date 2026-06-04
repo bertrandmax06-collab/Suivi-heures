@@ -26,11 +26,12 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 4rem)' }}
       onClick={onClose}
     >
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
-        className={`relative w-full ${sizeClass} bg-white rounded-t-3xl sm:rounded-3xl shadow-ios z-10 max-h-[90vh] flex flex-col`}
+        className={`relative w-full ${sizeClass} bg-white rounded-t-3xl sm:rounded-3xl shadow-ios z-10 max-h-[85vh] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
