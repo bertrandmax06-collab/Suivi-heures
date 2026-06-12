@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -10,13 +10,25 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
+    if (!isOpen) return;
+
+    // iOS fix: freeze body scroll without losing position
+    const scrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
       document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
+      window.scrollTo(0, scrollY);
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -27,14 +39,21 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 4rem)' }}
-      onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      {/* Backdrop - tap to close */}
       <div
-        className={`relative w-full ${sizeClass} bg-white rounded-t-3xl sm:rounded-3xl shadow-ios z-10 max-h-[85vh] flex flex-col`}
-        onClick={(e) => e.stopPropagation()}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+        style={{ touchAction: 'none' }}
+      />
+
+      {/* Modal panel */}
+      <div
+        className={`relative w-full ${sizeClass} bg-white rounded-t-3xl sm:rounded-3xl shadow-ios z-10 flex flex-col`}
+        style={{ maxHeight: 'calc(85vh - env(safe-area-inset-bottom))' }}
       >
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           <button
             onClick={onClose}
@@ -43,7 +62,18 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
             <X size={20} />
           </button>
         </div>
-        <div className="overflow-y-auto flex-1 p-5">{children}</div>
+
+        {/* Scrollable content */}
+        <div
+          ref={scrollRef}
+          className="overflow-y-auto flex-1 p-5"
+          style={{
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
