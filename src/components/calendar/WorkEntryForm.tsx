@@ -32,7 +32,7 @@ export function WorkEntryForm({ date, entry, onSave, onCancel }: WorkEntryFormPr
     clientId: entry?.clientId ?? '',
     startTime: entry?.startTime ?? '08:00',
     endTime: entry?.endTime ?? '17:00',
-    breakMinutes: String(entry?.breakMinutes ?? 60),
+    breakMinutes: '0',
     hourlyRate: String(entry?.hourlyRate ?? settings.defaultHourlyRate),
     notes: entry?.notes ?? '',
   });
@@ -153,7 +153,7 @@ export function WorkEntryForm({ date, entry, onSave, onCancel }: WorkEntryFormPr
       </div>
 
       {/* Time fields */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <Input
           label="Début"
           type="time"
@@ -173,14 +173,6 @@ export function WorkEntryForm({ date, entry, onSave, onCancel }: WorkEntryFormPr
             <p className="text-xs text-indigo-500 mt-1 font-medium">+1 jour</p>
           )}
         </div>
-        <Input
-          label="Pause (min)"
-          type="number"
-          min="0"
-          max="480"
-          value={form.breakMinutes}
-          onChange={(e) => setForm((f) => ({ ...f, breakMinutes: e.target.value }))}
-        />
       </div>
 
       {/* Hours computed display */}
