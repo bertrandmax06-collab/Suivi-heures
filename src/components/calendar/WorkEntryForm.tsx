@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import { WorkEntry, Client } from '../../types';
 import { useApp } from '../../context/AppContext';
-import { calculateHours, formatHours } from '../../utils/calculations';
+import { calculateHours, formatHours, isOvernightShift } from '../../utils/calculations';
 import { Input, Textarea } from '../ui/Input';
 import { Button } from '../ui/Button';
 
@@ -54,13 +54,14 @@ export function WorkEntryForm({ date, entry, onSave, onCancel }: WorkEntryFormPr
 
   const hours = calculateHours(form.startTime, form.endTime, Number(form.breakMinutes) || 0);
   const revenue = hours * Number(form.hourlyRate || 0);
+  const overnight = form.startTime && form.endTime && isOvernightShift(form.startTime, form.endTime);
 
   function validate(): boolean {
     const newErrors: Partial<FormState> = {};
     if (!form.clientId) newErrors.clientId = 'Sélectionnez un client';
     if (!form.startTime) newErrors.startTime = 'Requis';
     if (!form.endTime) newErrors.endTime = 'Requis';
-    if (hours <= 0) newErrors.endTime = "L'heure de fin doit être après le début";
+    if (hours <= 0) newErrors.endTime = 'Durée invalide (trop de pause ?)';
     if (!form.hourlyRate || Number(form.hourlyRate) <= 0)
       newErrors.hourlyRate = 'Taux horaire invalide';
     setErrors(newErrors);
@@ -160,13 +161,18 @@ export function WorkEntryForm({ date, entry, onSave, onCancel }: WorkEntryFormPr
           onChange={(e) => setForm((f) => ({ ...f, startTime: e.target.value }))}
           error={errors.startTime}
         />
-        <Input
-          label="Fin"
-          type="time"
-          value={form.endTime}
-          onChange={(e) => setForm((f) => ({ ...f, endTime: e.target.value }))}
-          error={errors.endTime}
-        />
+        <div>
+          <Input
+            label="Fin"
+            type="time"
+            value={form.endTime}
+            onChange={(e) => setForm((f) => ({ ...f, endTime: e.target.value }))}
+            error={errors.endTime}
+          />
+          {overnight && (
+            <p className="text-xs text-indigo-500 mt-1 font-medium">+1 jour</p>
+          )}
+        </div>
         <Input
           label="Pause (min)"
           type="number"
