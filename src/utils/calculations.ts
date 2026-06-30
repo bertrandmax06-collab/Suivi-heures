@@ -8,9 +8,16 @@ export function calculateHours(
   const [startH, startM] = startTime.split(':').map(Number);
   const [endH, endM] = endTime.split(':').map(Number);
   const startTotal = startH * 60 + startM;
-  const endTotal = endH * 60 + endM;
+  let endTotal = endH * 60 + endM;
+  if (endTotal <= startTotal) endTotal += 24 * 60; // overnight shift
   const worked = endTotal - startTotal - breakMinutes;
   return Math.max(0, worked / 60);
+}
+
+export function isOvernightShift(startTime: string, endTime: string): boolean {
+  const [startH, startM] = startTime.split(':').map(Number);
+  const [endH, endM] = endTime.split(':').map(Number);
+  return endH * 60 + endM <= startH * 60 + startM;
 }
 
 export function calculateRevenue(hours: number, hourlyRate: number): number {
